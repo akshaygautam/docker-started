@@ -111,3 +111,58 @@ sudo docker history ak/debian:latest (list out history of image layers)
         sudo apt install gnupg2 pass
     5: sudo docker push akshaygautam/demodocker:0.1
     6: verify on docker hub
+
+------------------ Dockerizing App ----------------------------
+-------------------- basic -----------------------------
+    1. sudo docker build -t pydockerapp:v0.1 ./{path to}/dockerapp/py1/
+        this will read dockerfile in py1 package and build the image
+    2. verify new image by using sudo docker images
+    3.  sudo docker run -d -p 5000:5000 pydockerapp:v0.1
+        Run the container.
+        Go to localhost:5000 on browser to verify.
+    4. sudo docker exec -it {container_id} bash
+        You will go inside container
+    5. run ls to list the files.
+        you'll find the py source code there.
+
+    ------ Inspect docker file ------
+    FROM python:3.5                 => use py 3.5
+    RUN pip install Flask==0.11.1   => install Flask
+    RUN useradd -ms /bin/bash admin => create new user admin
+    USER admin                      => using user admin
+    WORKDIR /app                    => select the working directory of container
+    COPY app /app                   => Run copy in working directory
+    CMD ["python", "app.py"]        => Run CMD in working directory
+    ----------------------------------
+    6. inside container run pwd ( verify the dockerfile now )
+    7. run ps axu ( verify the user running pyapp )
+
+-------------- key/value app -----------------------
+    1. sudo docker build -t pydockerapp:v0.1 ./{path to}/dockerapp/py2/
+        -- follow all above steps --
+    
+------------------- Docker-compose ---------------------
+Automated tool to maintain config for multi-container systems.
+    1. create a docker-compose.yml(yaml) file.
+    2. run sudo docker-compose -f ./Documents/docker-compose.yml up -d
+        => -f specifies path to file, else you can run, docker-compose up in the file directory.
+        => -d is detached mode, remove -d and you'll see logs printing.
+    3. check running containers using docker ps command.
+    4. check app running on localhost:5000.
+        ------------- Inspect docker-compose.yml -----------
+        ( version: '3'                              => use docker version 3
+            services:                               => create specified services
+                dockerapp:                          => create dockerapp service
+                    build: ./dockerapp/composepy3/  => from this path to dockerfile
+                    ports:                          => on port 
+                        - "5000:5000"               => 5000 external to 5000 container port
+                    depends_on:                     => dockerapp depends_on redis service 
+                        - redis                     => create redis service before dockerapp
+                redis:                              => create redis service
+                    image: redis                    => from image redis
+        )
+---------------------------------------------------------
+
+
+
+
