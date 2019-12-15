@@ -163,6 +163,46 @@ Automated tool to maintain config for multi-container systems.
         )
 ---------------------------------------------------------
 
+----------------------- Docker Networking ---------------------
+1. sudo docker network ls  => Lists all available network options
+2. sudo docker run -d --net none busybox sleep 1000
+    now go inside the container using: sudo docker exec -it {container_id} /bin/ash
+    and run ifconfig => It will show network configs for "none driver"
+    and run ping 8.8.8.8 (google ip) it will not work.
+
+3. sudo docker inspect bridge => inspect bridge-driver
+4. sudo run -d --name con_1 busybox sleep 1000 => provide default bridge driver
+    now run sudo docker exec -it con_1 ifconfig => It will show network configs for "bridge driver"
+5. create another container with bridge driver 
+    sudo run -d --name con_2 busybox sleep
+    sudo docker exec -it con_2 ping {ip_of_con_1} => start ping
+    same bridge container can contact each other.
+
+6. sudo docker network create --driver bridge my_bridge => create custom bridge_driver
+    Create container with custom_bridge
+    sudo docker run -d --net my_bridge --name con_3  busybox sleep 1000
+    sudo docker exec -it con_3 ping {ip_of_con_1} => ping will not start by default
+    on different bridge.
+7. sudo docker network connect bridge con_3 => connect con_3 to bridge 
+    Now ping will work
+
+8. sudo docker network disconnect bridge con_3 => disconnect con_3 to bridge.
+
+9. sudo docker run -d --net host --name con_4  busybox sleep 1000 
+    create host network container
+    now look at ifconfig of this container.
+-------------------------------------------------------------------------------
+------------------------ Unit Tetsing ------------------
+    1. go inside compose_ut folder
+    2. run sudo docker-compose up -d
+    3. run sudo docker-compose run dockerapp python test.py
+----------------------------------------------------------------
+
+
+
+
+
+
 
 
 
