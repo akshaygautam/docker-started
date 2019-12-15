@@ -1,0 +1,113 @@
+-----------------------Install Docker--------------------
+   18  sudo apt-get update
+   19  sudo apt-get remove docker docker-engine docker.io
+   20  sudo apt install docker.io
+   21  sudo systemctl start docker
+   22  sudo systemctl enable docker
+   23  docker --version
+---------------------------------------------------------
+---------------------- Getting started ------------------
+
+sudo docker run hello-world         -> Installs and runs hello-world
+sudo docker run busybox:1.24        -> Installs and runs busybox
+sudo docker run -i -t busybox:1.24  -> Go inside busybox 
+    ( -i starts interactive container; -t creates a pseudo-TTY tahat atachers stdin
+     and stdout (linux terminal))
+     If we exist this session all files will be deleted (try login again)
+     i.e everytime docker run starts new container.
+
+
+sudo docker run -d busybox:1.24 sleep 2000 ( Run container in detached mode)
+sudo docker ps (list all running containers)
+sudo docker ps -a(list all containers)
+sudo docker run --rm busybox:1.24 sleep 1 (automatically  removes container)
+sudo docker run --name bawa busybox:1.24 (gives name to container)
+sudo docker inspect {container_id} (shows low level info of container)
+sudo docker stop {container_ids} (stops a running container/containers)
+sudo docker rm {container_ids} (removes a stopped container/containers)
+sudo docker run -it -d -p 8888:8080 tomcat:8.0 (changed port to 8888 from 8080)
+sudo docker logs {container_id} (shows logs for that container)
+
+------------------------- BUILDING IMAGES -----------------------------
+Way 1: (commiting chnages as new image)
+    1. Run  sudo docker run -it debian:jessie (to install debian in interactive mode)
+    2. in that container install git.
+    3. exit container
+    4. sudo docker commit 54e743366fe6 akshaygautam/debian:1.0.0
+       sudo docker commit {container_id} new_repo_name:tag (commits the new container image)
+    5. run sudo docker ps -a (to verify new image)
+    6. run new image with  sudo docker run -it new_repo_name:tag
+    7. verify git installation.
+
+Way 2: (using docker file: funfact at every command in docker file docker commits
+an intermediate container and runs next command on this new container and then removes
+old container.)
+    1. Create a Dockerfile  Like following 
+        (
+            FROM debian:jessie
+            RUN apt-get update  
+            RUN apt-get install -y git
+            RUN apt-get install -y vim
+            RUN apt-get install -y default-jdk
+        )
+    2. Run sudo docker build {your_image_name} {.{path_to_Dockerfile}}
+    3. run sudo docker images (to verify new image)
+    4. run new image with  sudo docker run -it new_repo_name:tag
+
+sudo docker history ak/debian:latest (list out history of image layers)
+ --------------------------------------------------------------------
+ -------------- Dockerfile in depth -------------
+1. chain RUN 
+    (
+        FROM debian:jessie
+        RUN apt-get update
+        RUN apt-get install -y git  \
+        vim \
+        default-jdk
+    )
+    OR
+    (
+        FROM debian:jessie
+        RUN apt-get update
+        RUN apt-get install -y default-jdk  git  python vim 
+    )
+2. Arrange multiline alphanumerically
+    (
+        FROM debian:jessie
+        RUN apt-get update
+        RUN apt-get install -y default-jdk \
+        git  \
+        python \
+        vim 
+    )
+3. using CMD in Dockerfile (It will work when you actuallu run the container)
+    (
+        FROM debian:jessie
+        RUN apt-get update
+        RUN apt-get install -y default-jdk \
+        git  \
+        python \
+        vim 
+        CMD [ "echo", "bawa its working !!! HAHAHA" ]
+    )
+4. Avoid docker cache (use: --no-cache=true)
+    sudo docker build -t ak/dockerfile:2.1 ./Documents/ --no-cache=true
+
+5. COPY instruction: used to copy file to container
+    (
+        FROM debian:jessie
+        RUN apt-get update && apt-get install -y git vim 
+        COPY copyThis.txt /src/copyThis.txt
+    
+    )
+
+6. ADD instruction: used to copy file to containers however can download file from net
+7. Pushing image to docker hub
+    1: sudo docker images.
+    2: sudo docker tag 50855108fc13 akshaygautam/demodocker:0.1
+    3: check new image sudo docker images
+    4: login to docker hub=> sudo docker login --username=akshaygautam
+        issue in login? try
+        sudo apt install gnupg2 pass
+    5: sudo docker push akshaygautam/demodocker:0.1
+    6: verify on docker hub
